@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Elanco Challenge</title>
+    <link rel="stylesheet" type="text/css" href="/static/style.css">
+</head>
+
+<body>
+    <section id="topBar">
+        <h1>Elanco Software Challenge</h1>
+    </section>
+    <section id="aboveData">
+        <div id="filters">
+            <h1>Filters:</h1>
+            <form id="mainFilter">
+                <label for="filterSelect1">- </label>
+                <select id="filterSelect1">
+                    <option value="name">By Name</option>
+                </select>
+                <input type="submit" value="Submit">
+            </form>
+        </div>
+        <div id="tools">
+            <h1>Tools</h1>
+            <p>Tools for extra details in data.</p>
+        </div>
+    </section>
+    <section id="dataSection">
+        <div id="buttons">
+            <button type="button" id="buttonAll"
+                tableheaders="Date,InstanceId,Location,ServiceName,ConsumedQuantity,Cost,MeterCategory,ResourceGroup,ResourceLocation,UnitOfMeasure,Tags">All<br>Information</button>
+            <button type="button" id="buttonResources">Resources<br>Information</button>
+            <button type="button" id="buttonApplications">Application<br>Information</button>
+        </div>
+        <div id="mainTable">
+        </div>
+    </section>
+    <!-- javascript -->
+    <script src="/static/script.js" type="text/javascript"></script>
+</body>
+
+</html>
