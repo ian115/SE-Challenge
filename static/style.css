@@ -20,6 +20,16 @@ button {
   font-size: 16px;
 }
 
+/* select */
+select, input[type="submit"] {
+  font-family: Arial;
+  color: #494949;
+  border: solid #a4d3f0;
+  border-radius: 11px;
+  font-size: 18px;
+  background-color: #ffffff;
+}
+
 /* sections */
 section {
   width: 100%;
@@ -65,10 +75,11 @@ section {
 #mainTable table td, #mainTable table th{
   padding-right: 16px;
   text-align: left;
+  min-width: 92px;
+  font-size: 18px;
 }
 #mainTable table th {
   background-color: #a4d3f0;
-  font-size: 22px;
 }
 #mainTable table tr:nth-child(even) {
   background-color: #b8d8ec;
