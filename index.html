@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <title>Elanco Challenge</title>
-    <link rel="stylesheet" type="text/css" href="/static/style.css">
+    <link rel="stylesheet" type="text/css" href="static/style.css">
 </head>
 
 <body>
@@ -26,6 +26,15 @@
         <div id="tools">
             <h1>Tools</h1>
             <p>Tools for extra details in data.</p>
+            <select id="headerSelect1">
+                <option value="Cost">Cost</option>
+                <option value="ConsumedQuantity">ConsumedQuantity</option>
+            </select>
+            <select id="calcSelect" placeholder="Find..">
+                <option value="" selected>Find..</option>
+                <option value="max">..Max</option>
+                <option value="min">..Min</option>
+            </select>
         </div>
     </section>
     <section id="dataSection">
@@ -39,7 +48,7 @@
         </div>
     </section>
     <!-- javascript -->
-    <script src="/static/script.js" type="text/javascript"></script>
+    <script src="static/script.js" type="text/javascript"></script>
 </body>
 
 </html>
