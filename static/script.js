@@ -1,21 +1,6 @@
+// Global Variables
+
 RawApiData = {};
-/**{
-    "ConsumedQuantity": "0.02595301",
-    "Cost": "0.052413816",
-    "Date": "19/11/2020",
-    "InstanceId": "LA-4b8d7dd5-480d-450e-a28e-35225f625f93",
-    "MeterCategory": "Log Analytics",
-    "ResourceGroup": "Officer",
-    "ResourceLocation": "EastUS",
-    "Tags": {
-      "app-name": "Officer",
-      "environment": "Development",
-      "business-unit": "Digital"
-    },
-    "UnitOfMeasure": "1 GB",
-    "Location": "US East",
-    "ServiceName": "Log Analytics"
-  } */
 
 // =================================================================================
 //                                  Functions
@@ -30,7 +15,7 @@ function tableDisplayArray(ApiData, appOrRes, assetTable) {
     for (let asset of ApiData) {
         if (count == 3) {
             count = 0;
-            htmlList += "<tr>";
+            htmlList += "</tr><tr>";
         }
         linkAsset = asset.replace(/ /g, "%20"); //replace spaces (convert to web link)
         htmlList += "<td onclick=getSpecificApi(\"" + appOrRes + "\",\"" + linkAsset + "\");>" + asset + "</td>";
@@ -38,8 +23,9 @@ function tableDisplayArray(ApiData, appOrRes, assetTable) {
     }
     htmlList += "</tr></table>";
     document.getElementById(assetTable).innerHTML = htmlList;
-
-    getFilterSelect(assetTable);
+    var count = document.getElementsByTagName("td").length;
+    document.getElementById("replaceTotal").innerText = appOrRes + " count: " + count;
+    getFilterSelect(assetTable); //find filters for this table.
 }
 
 /**tableDisplay()
@@ -76,11 +62,11 @@ function tableDisplay(ApiData, headersToGet, assetTable) {
                 // Tags
                 if ((headerOfJson == "Tags")) {
                     sortedRow[tablePosition] = "<td class=\"tags\">"
-                    for (let key in itemOfJson[headerOfJson]){
+                    for (let key in itemOfJson[headerOfJson]) {
                         sortedRow[tablePosition] += key + ":" + itemOfJson["Tags"][key] + "; ";
                     }
                     sortedRow[tablePosition] += "</td>"
-                // Rest
+                    // Rest
                 } else {
                     sortedRow[tablePosition] = "<td>" + itemOfJson[headerOfJson] + "</td>"; //.4 get value inside json using header
                 }
@@ -95,7 +81,7 @@ function tableDisplay(ApiData, headersToGet, assetTable) {
     assetsRows = assetsHeadersRows + assetsRows + "</tbody></table>";
     document.getElementById(assetTable).innerHTML = assetsRows;
 
-    getFilterSelect(assetTable);
+    getFilterSelect(assetTable); //find filters for this table.
 }
 
 /**findMaxInTable()
@@ -107,10 +93,12 @@ function tableDisplay(ApiData, headersToGet, assetTable) {
 function findMinMaxInTable(minMax, assetTable) {
     document.getElementById("calcSelect").getElementsByTagName("option")[0].selected = true;
     var costOrConsumed = document.getElementById("headerSelect1").value;
-    var tempArray = [];
+    var tempArray = []; // initialised
     var newRows = "";
+    var total = 0;
+    // 1. Find the Selected header 
     var headers = document.getElementById(assetTable).getElementsByTagName("th");
-    for (let i = 0; i < headers.length; i++) { // 1. find index of header
+    for (let i = 0; i < headers.length; i++) { // 1.1 find index of header
         if (headers[i].innerText == costOrConsumed) {
             var headerIndex = i;
         }
@@ -120,20 +108,34 @@ function findMinMaxInTable(minMax, assetTable) {
     for (let row of rows) {
         tempArray.push(row.getElementsByTagName("td")[headerIndex].innerText);
     }
-    // 3. Find max
+    // 3.1 Find max
     if (minMax == "max") {
         var calc = Math.max.apply(null, tempArray);
-    } else {
-        var calc = Math.min.apply(null, tempArray);
-    }
-    // There may be many rows with the same max, so for loop.
-    //document.getElementById("mainTable").getElementsByTagName("tbody")[0].innerHTML = ""; //clear the table
-    for (let index in tempArray) {
-        if (tempArray[index] == calc) {
-            newRows += rows[index].outerHTML; // 4. append max row to html
+        // There may be many rows with the same max, so for loop.
+        for (let index in tempArray) {
+            if (tempArray[index] == calc) {
+                newRows += rows[index].outerHTML; // 4.1 append max row to html
+            }
         }
+        document.getElementById(assetTable).getElementsByTagName("tbody")[0].innerHTML = newRows; // 4.2 replace
+        //3.2 Find Min
+    } else if (minMax == "min") {
+        var calc = Math.min.apply(null, tempArray);
+        for (let index in tempArray) {
+            if (tempArray[index] == calc) {
+                newRows += rows[index].outerHTML; // 4.1
+            }
+        }
+        document.getElementById(assetTable).getElementsByTagName("tbody")[0].innerHTML = newRows; // 4.2
+        //3.3 Find Total
+    } else if (minMax == "total") {
+        total = tempArray.reduce(function (sum, value) { return parseFloat(sum) + parseFloat(value); }, 0); // add all tempArray
+        document.getElementById("replaceTotal").innerText = "Sum of " + costOrConsumed + ": " + total;
+        //3.4 Find Count
+    } else if (minMax == "count") {
+        total = tempArray.length; // count elements
+        document.getElementById("replaceTotal").innerText = "Rows count: " + total;
     }
-    document.getElementById("mainTable").getElementsByTagName("tbody")[0].innerHTML = newRows;
 }
 
 /**getFilters()
@@ -141,39 +143,107 @@ function findMinMaxInTable(minMax, assetTable) {
  * @param assetTable table to find headers
  */
 function getFilterSelect(assetTable) {
-    var forms = document.getElementById("filters").getElementsByTagName("form");
+    var form = document.getElementById("filters").getElementsByTagName("form")[0];
     var headers = document.getElementById(assetTable).getElementsByTagName("th");
     var selects = "";
-    for (let form of forms) {
-        selects = "<select onchange=getfilterInput();><option value=\"\" selected disabled>...</option>";
-        if (headers.length <= 0) {
-            selects += "<option value=\"name\">Name</option>"
-        } else {
-            for (let header of headers) {
-                selects += "<option value=\"" + header.innerText + "\">" + header.innerText + "</option>"
-            }
+    selects = "<select onchange=getfilterInput();><option value=\"\" selected disabled>...</option>";
+    if (headers.length <= 0) {
+        selects += "<option value=\"Name\">Name</option>"
+    } else {
+        for (let header of headers) {
+            selects += "<option value=\"" + header.innerText + "\">" + header.innerText + "</option>"
         }
-        selects += "</select><br><div class=\"replace\"></div><button type=\"submit\">Submit</button>"
-        form.innerHTML = selects;
+    }
+    selects += "</select><br><div class=\"replace\"></div><button type=\"button\" onclick=processFilter(\"mainTable\");>Submit</button>"
+    form.innerHTML = selects;
+}
+
+/**getFilterInput()
+ * Create an input depending on select. (e.g. Date should have "From, To". Name "Contains").
+ */
+function getfilterInput() {
+    var form = document.getElementById("filters").getElementsByTagName("form")[0];
+    var selection = "";
+    form.getElementsByClassName("replace")[0] = "";
+    selection = form.getElementsByTagName("select")[0].value;
+    if (selection == "Date") {
+        form.getElementsByClassName("replace")[0].innerHTML =
+            "<label for=\"from\">From:</label><input type=\"date\" name=\"from\"><label for=\"to\">&emsp;To:</label><input type=\"date\" name=\"to\">";
+    } else if ((selection == "Cost") || (selection == "ConsumedQuantity")) {
+        form.getElementsByClassName("replace")[0].innerHTML = "<label for=\"numberInput\">Number:</label><input type=\"number\" name=\"numberInput\">";
+        form.getElementsByClassName("replace")[0].innerHTML +=
+            "<select id=\"op\"><option value=\"higherThan\">Higher than</option><option value=\"lowerThan\">Lower than</option><option value=\"equals\">Equals</option></select>";
+    } else {
+        form.getElementsByClassName("replace")[0].innerHTML = "<label for=\"textInput\">Contains:</label><input type=\"text\" name=\"textInput\">";
     }
 }
 
-function getfilterInput() {
-    var forms = document.getElementById("filters").getElementsByTagName("form");
-    var selection = "";
-    for (let form of forms) {
-        form.getElementsByClassName("replace")[0] = "";
-        selection = form.getElementsByTagName("select")[0].value;
-        if (selection == "Date"){
-            form.getElementsByClassName("replace")[0].innerHTML = "<label for=\"from\">From:</label><input type=\"date\" name=\"from\"><label for=\"to\">&emsp;To:</label><input type=\"date\" name=\"to\">";
-        } else if ((selection == "Cost") || (selection == "ConsumedQuantity")) {
-            form.getElementsByClassName("replace")[0].innerHTML = "<label for=\"numberInput\">Number:</label><input type=\"number\" name=\"numberInput\">";
-            form.getElementsByClassName("replace")[0].innerHTML += "<select><option value=\"higherThan\">Higher than</option><option value=\"lowerThan\">Lower than</option><option value=\"equals\">Equals</option></select>";
-        } else {
-            form.getElementsByClassName("replace")[0].innerHTML = "<label for=\"textInput\">Contains:</label><input type=\"text\" name=\"textInput\">";
+/**processFilter()
+ * Read filter inputs and apply to table.
+ */
+function processFilter(assetTable) {
+    var form = document.getElementById("filters").getElementsByTagName("form")[0];
+    var selection = form.getElementsByTagName("select")[0].value;
+    if (selection == "Date") {
+        var dateInputFrom = new Date(form.getElementsByTagName("input")[0].value);
+        var dateInputTo = new Date(form.getElementsByTagName("input")[1].value);
+        var typeInput = "Date";
+    } else if ((selection == "Cost") || (selection == "ConsumedQuantity")) {
+        var numberInput = form.getElementsByTagName("input")[0].value;
+        var opSelect = form.getElementsByTagName("select")[1].value;
+        var typeInput = "Number";
+    } else if (selection == "Name") { //no headers exist - Applications or Resources
+        const rows = document.getElementById(assetTable).getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+        var textInput = form.getElementsByTagName("input")[0].value;
+        var newBody = "";
+        for (let row of rows) {
+            if (row.innerHTML.includes(textInput)) {
+                newBody += row.outerHTML;
+            }
+        }
+        document.getElementById(assetTable).getElementsByTagName("tbody")[0].innerHTML = newBody;
+        return; //end Applications or Resources
+    } else {
+        var textInput = form.getElementsByTagName("input")[0].value;
+        var typeInput = "Text", textInput;
+    }
+
+    // 1. Find the Selected header 
+    var headers = document.getElementById(assetTable).getElementsByTagName("th");
+    for (let i = 0; i < headers.length; i++) { // 1.1 find index of header
+        if (headers[i].innerText == selection) {
+            var headerIndex = i;
         }
     }
+    // 2. For each row, grab the value with index of the header. Append to newBody only if it meets filter.
+    var newBody = "";
+    var cellData = "";
+    const rows = document.getElementById(assetTable).getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+    for (let row of rows) {
+        cellData = row.getElementsByTagName("td")[headerIndex].innerText;
+        if ((typeInput == "Text") && (cellData.includes(textInput))) {
+            newBody += row.outerHTML;
+        } else if (typeInput == "Number") {
+            //start num check
+            if ((opSelect == "higherThan") && (parseFloat(cellData) > numberInput)) {
+                newBody += row.outerHTML;
+            } else if ((opSelect == "lowerThan") && (parseFloat(cellData) < numberInput)) {
+                newBody += row.outerHTML;
+            } else if ((opSelect == "equals") && (parseFloat(cellData) == numberInput)) {
+                newBody += row.outerHTML;
+            } //end
+        } else if (typeInput == "Date") {
+            let parseDate = cellData.split("/");
+            let cellDate = new Date(parseDate[1] + "-" + parseDate[0] + "-" + parseDate[2]); //dates in JS use american 12-30-2020
+            if ((cellDate >= dateInputFrom) && (cellDate <= dateInputTo)) {
+                newBody += row.outerHTML;
+            }
+        }
+    }
+    document.getElementById(assetTable).getElementsByTagName("tbody")[0].innerHTML = newBody;
 }
+
+
 
 /**getApi()
  * Get the Api info from url

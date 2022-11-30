@@ -15,13 +15,14 @@
     <section id="aboveData">
         <div id="filters">
             <h1>Filters</h1>
+            <p>* Case sensitive.</p>
             <form id="mainFilter">
                 <p style="font-size: 36px">...</p>
             </form>
         </div>
         <div id="tools">
             <h1>Tools</h1>
-            <p>Tools for extra details in data.</p>
+            <p>Tools for extra details in data. Works alongside filters.</p>
             <select id="headerSelect1">
                 <option value="Cost">Cost</option>
                 <option value="ConsumedQuantity">ConsumedQuantity</option>
@@ -30,7 +31,10 @@
                 <option value="" selected disabled>Find..</option>
                 <option value="max">..Max</option>
                 <option value="min">..Min</option>
+                <option value="total">..Total</option>
+                <option value="count">..Count Rows</option>
             </select>
+            <p id="replaceTotal"></p>
         </div>
     </section>
     <section id="dataSection">
