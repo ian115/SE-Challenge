@@ -38,6 +38,8 @@ function tableDisplayArray(ApiData, appOrRes, assetTable) {
     }
     htmlList += "</tr></table>";
     document.getElementById(assetTable).innerHTML = htmlList;
+
+    getFilterSelect(assetTable);
 }
 
 /**tableDisplay()
@@ -92,6 +94,8 @@ function tableDisplay(ApiData, headersToGet, assetTable) {
     //3. Add the table headers, rows then add into HTML
     assetsRows = assetsHeadersRows + assetsRows + "</tbody></table>";
     document.getElementById(assetTable).innerHTML = assetsRows;
+
+    getFilterSelect(assetTable);
 }
 
 /**findMaxInTable()
@@ -101,6 +105,7 @@ function tableDisplay(ApiData, headersToGet, assetTable) {
  * @param assetTable String indicates elementID of table to find Max
  */
 function findMinMaxInTable(minMax, assetTable) {
+    document.getElementById("calcSelect").getElementsByTagName("option")[0].selected = true;
     var costOrConsumed = document.getElementById("headerSelect1").value;
     var tempArray = [];
     var newRows = "";
@@ -129,7 +134,45 @@ function findMinMaxInTable(minMax, assetTable) {
         }
     }
     document.getElementById("mainTable").getElementsByTagName("tbody")[0].innerHTML = newRows;
-    document.getElementById("calcSelect").getElementsByTagName("option")[0].selected = true;
+}
+
+/**getFilters()
+ * Use headers to create filters.
+ * @param assetTable table to find headers
+ */
+function getFilterSelect(assetTable) {
+    var forms = document.getElementById("filters").getElementsByTagName("form");
+    var headers = document.getElementById(assetTable).getElementsByTagName("th");
+    var selects = "";
+    for (let form of forms) {
+        selects = "<select onchange=getfilterInput();><option value=\"\" selected disabled>...</option>";
+        if (headers.length <= 0) {
+            selects += "<option value=\"name\">Name</option>"
+        } else {
+            for (let header of headers) {
+                selects += "<option value=\"" + header.innerText + "\">" + header.innerText + "</option>"
+            }
+        }
+        selects += "</select><br><div class=\"replace\"></div><button type=\"submit\">Submit</button>"
+        form.innerHTML = selects;
+    }
+}
+
+function getfilterInput() {
+    var forms = document.getElementById("filters").getElementsByTagName("form");
+    var selection = "";
+    for (let form of forms) {
+        form.getElementsByClassName("replace")[0] = "";
+        selection = form.getElementsByTagName("select")[0].value;
+        if (selection == "Date"){
+            form.getElementsByClassName("replace")[0].innerHTML = "<label for=\"from\">From:</label><input type=\"date\" name=\"from\"><label for=\"to\">&emsp;To:</label><input type=\"date\" name=\"to\">";
+        } else if ((selection == "Cost") || (selection == "ConsumedQuantity")) {
+            form.getElementsByClassName("replace")[0].innerHTML = "<label for=\"numberInput\">Number:</label><input type=\"number\" name=\"numberInput\">";
+            form.getElementsByClassName("replace")[0].innerHTML += "<select><option value=\"higherThan\">Higher than</option><option value=\"lowerThan\">Lower than</option><option value=\"equals\">Equals</option></select>";
+        } else {
+            form.getElementsByClassName("replace")[0].innerHTML = "<label for=\"textInput\">Contains:</label><input type=\"text\" name=\"textInput\">";
+        }
+    }
 }
 
 /**getApi()
@@ -165,7 +208,9 @@ document.getElementById("buttonResources").addEventListener("click", async funct
     ApiData = getApi('https://engineering-task.elancoapps.com/api/resources');
     tableDisplayArray(await ApiData, "resources", "mainTable");
 });
-document.getElementById("buttonAll").addEventListener("click", function () { tableDisplay(RawApiData, "buttonAll", "mainTable") });
+document.getElementById("buttonAll").addEventListener("click", function () {
+    tableDisplay(RawApiData, "buttonAll", "mainTable");
+});
 
 document.getElementById("calcSelect").addEventListener("change", function (event) { findMinMaxInTable(event.target.value, "mainTable") });
 

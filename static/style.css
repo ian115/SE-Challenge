@@ -12,15 +12,26 @@ body {
 
 /* button */
 button {
-  width: 140px;
-  height: 40px;
+  width: 80px;
+  height: 34px;
   background-color: #a4d3f0;
   border: solid #a4d3f0;
   border-radius: 11px;
   font-size: 16px;
 }
+#filters button {
+  margin-top: 4px;
+}
+#dataSection button {
+  width: 140px;
+  height: 40px;
+}
 
-/* select */
+input[type="submit"]:active, button:active {
+  background-color: #89cbf5;
+}
+
+/* select and input */
 select, input[type="submit"] {
   font-family: Arial;
   color: #494949;
@@ -28,6 +39,7 @@ select, input[type="submit"] {
   border-radius: 11px;
   font-size: 18px;
   background-color: #ffffff;
+  margin-bottom: 8px;
 }
 
 /* sections */
@@ -43,7 +55,7 @@ section {
   font-size: 32px;
 }
 #aboveData {
-  width: 80%;
+  height: 180px;
   margin: auto;
 }
 #aboveData h1 {
@@ -51,18 +63,21 @@ section {
   margin-bottom: 8px;
 }
 #buttons {
-  margin-top: 20px;
   border-bottom: solid #ffffff;
 }
 
 /* filter */
 #filters {
-  display: inline-block;
+  width: 440px;
+  height: 120px;
+  float: left;
 }
 
 /* tools */
 #tools {
-  float: right;
+  width: 300px;
+  height: 120px;
+  float: left;
 }
 
 /* tables */
