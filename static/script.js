@@ -81,7 +81,8 @@ function tableDisplay(ApiData, headersToGet, assetTable) {
     assetsRows = assetsHeadersRows + assetsRows + "</tbody></table>";
     document.getElementById(assetTable).innerHTML = assetsRows;
 
-    getFilterSelect(assetTable); //find filters for this table.
+    getSortBy(assetTable); //create sort for this table.
+    getFilterSelect(assetTable); //create filters for this table.
 }
 
 /**findMaxInTable()
@@ -138,6 +139,77 @@ function findMinMaxInTable(minMax, assetTable) {
     }
 }
 
+/**getSortBy()
+ * Use headers to create sort by.
+ * @param assetTable table to find headers
+ */
+function getSortBy(assetTable) {
+    var sortSelect = document.getElementById("sortSelect");
+    var headers = document.getElementById(assetTable).getElementsByTagName("th");
+    var options = "<option value=\"\" selected disabled>Sort by..</option>";
+    if (headers.length > 0) {
+        for (let header of headers) {
+            options += "<option value=\"" + header.innerText + "\">" + header.innerText + "</option>"
+        }
+    }
+    sortSelect.innerHTML = options;
+}
+
+/**processSort()
+ * Use headers to create sort by.
+ * @param assetTable table to find headers, and sort
+ */
+function processSort(sortSelection, assetTable) {
+    var headers = document.getElementById(assetTable).getElementsByTagName("th");
+    var columnSorted = []; // initialised
+    var rowValue = "";
+    // 1. Find the Selected header 
+    for (let i = 0; i < headers.length; i++) { // 1.1 find index of header
+        if (headers[i].innerText == sortSelection) {
+            var headerIndex = i;
+        }
+    }
+    // 2. Append all cells of header to array. Sort.
+    const rows = document.getElementById(assetTable).getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+    for (let row of rows) {
+        if (sortSelection == "Date") { // convert date to sort
+            let parseDate = row.getElementsByTagName("td")[headerIndex].innerText.split("/");
+            let newDate = parseDate[2] + parseDate[1] + parseDate[0]; // yyyymmdd as number
+            columnSorted.push(newDate);
+        } else {
+            columnSorted.push(row.getElementsByTagName("td")[headerIndex].innerText);
+        }
+    }
+    columnSorted.sort();
+    // 3. For each column value, compare with all array values.
+    for (let row of rows) {
+        if (sortSelection == "Date") { // convert date so we can compare
+            let parseDate = row.getElementsByTagName("td")[headerIndex].innerText.split("/");
+            rowValue = parseDate[2] + parseDate[1] + parseDate[0]; // yyyymmdd as number
+        } else {
+            rowValue = row.getElementsByTagName("td")[headerIndex].innerText;
+        }
+        // 3.1 for each in array. If value is same, replace array slot. 
+        for (let i in columnSorted) {
+            if (columnSorted[i] == rowValue){
+                columnSorted[i] = row.outerHTML; // 3.2 replace slot in array with HTML.
+                break;
+            }
+        }
+    }
+    // 4. Ascending Descending
+    let ascDesc = document.getElementById("sortAscDesc").value;
+    if (ascDesc == "desc"){
+        columnSorted.reverse();
+    }
+    // 4. Replace table
+    let newRows = "";
+    for (let elementString of columnSorted) {
+        newRows += elementString;
+    }
+    document.getElementById(assetTable).getElementsByTagName("tbody")[0].innerHTML = newRows;
+}
+
 /**getFilters()
  * Use headers to create filters.
  * @param assetTable table to find headers
@@ -146,7 +218,7 @@ function getFilterSelect(assetTable) {
     var form = document.getElementById("filters").getElementsByTagName("form")[0];
     var headers = document.getElementById(assetTable).getElementsByTagName("th");
     var selects = "";
-    selects = "<select onchange=getfilterInput();><option value=\"\" selected disabled>...</option>";
+    selects = "<label for=\"filterSelect\">Select Filter:</label><select name=\"filterSelect\" onchange=getfilterInput();><option value=\"\" selected disabled>...</option>";
     if (headers.length <= 0) {
         selects += "<option value=\"Name\">Name</option>"
     } else {
@@ -180,6 +252,7 @@ function getfilterInput() {
 
 /**processFilter()
  * Read filter inputs and apply to table.
+ * @param assetTable table to filter
  */
 function processFilter(assetTable) {
     var form = document.getElementById("filters").getElementsByTagName("form")[0];
@@ -281,6 +354,10 @@ document.getElementById("buttonResources").addEventListener("click", async funct
 document.getElementById("buttonAll").addEventListener("click", function () {
     tableDisplay(RawApiData, "buttonAll", "mainTable");
 });
+// Selects
+document.getElementById("sortSelect").addEventListener("change", function (event) { processSort(event.target.value, "mainTable") });
+
+document.getElementById("sortAscDesc").addEventListener("change", function () { processSort(document.getElementById("sortSelect").value, "mainTable") });
 
 document.getElementById("calcSelect").addEventListener("change", function (event) { findMinMaxInTable(event.target.value, "mainTable") });
 
